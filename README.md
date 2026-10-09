@@ -1,1 +1,64 @@
-# Development-of-an-Artificial-Neural-Network-ANN-Based-Speed-Control-for-Autonomous-Vehicles
+# Project Title: Development of an Artificial Neural Network (ANN)- Based Speed Control for Autonomous Vehicles
+
+What Your Project Does
+	Offline Neural Network Modeling: Designs and trains a 2-10-1 multi-layer feed-forward Artificial Neural Network (ANN) in MATLAB using the Adam optimizer to model a Proportional-Integral (PI) control law from input speed error (e) and rate of change in error (Δe). 
+	Embedded Firmware Deployment: Extracts the trained synaptic weights and biases and translates them into C++ code for direct, real-time forward-propagation inference on an ESP32 microcontroller. 
+	Physical Hardware Integration: Implements the embedded ANN controller on a 4WD remote-controlled vehicle platform equipped with an L298N motor driver, dual 18650 lithium batteries with BMS protection, a buck converter, and an LM393 optical encoder speed sensor. 
+	Onboard Telemetry & Performance Evaluation: Executes untethered closed-loop runs at reference target speeds (e.g., 0.50" m/s" ) and logs real-time operational data to internal SPIFFS flash memory to measure transient step response (rise time, overshoot, settling time) and cumulative integral error metrics (IAE, ISE, ITAE). 
+
+### Goal of the Project
+i.	To design an Artificial Neural Network (ANN) model for speed regulation.
+ii.	To implement the developed speed control system on a remote-controlled car.
+iii.	To evaluate the performance of the system based on the ANN and control metrics.
+
+
+## 📁 Repository Structure
+* `/code` - Contains the ESP32 source code and MATLAB scripts.
+* `/data` - Contains the dataset used for analysis.
+* `/docs` - Contains the operating hardware manual.
+
+## 🛠️ Hardware Setup
+1. Power Distribution & Safety Calibration
+	Battery & BMS Wiring: Solder a balance wire (BM) directly to the metal bridge connecting the two 18650 cells in the holder. Wire the holder's main positive, main negative, and middle balance wires to the B+, B-, and BM pads on the 2S BMS board. 
+	Master Power Routing: Connect BMS output pad P+ through the KCD11 rocker switch before splitting it to the L298N 12V terminal and XL4015 buck converter IN+ terminal. Connect BMS output pad P- directly to both L298N GND and XL4015 IN-. 
+	Voltage Calibration: Turn on the power switch and measure the XL4015 output with a multimeter before plugging into the microcontroller. Adjust the blue potentiometer screw until the output reads 5.0V to 5.21V. Once verified, connect XL4015 OUT+ to the ESP32 VIN pin and OUT- to an ESP32 GND pin. 
+2. Motor Driver Assembly (L298N)
+	Motor Pairing: Parallel-wire the motors on each side of the chassis to run a 2-channel skid-steer setup. Combine the left motors' red wires to OUT1 and black wires to OUT2. Combine the right motors' red wires to OUT4 and black wires to OUT3. 
+	Remove Jumper Caps: Pull off the two black plastic jumper caps from the L298N ENA and ENB pins so the ESP32 can send dynamic PWM speed signals. 
+3. ESP32 Pin Connections
+	L298N Motor Control:
+ENA (Left Speed PWM) → GPIO 14
+	IN1 (Left Forward) → GPIO 27
+	IN2 (Left Reverse) → GPIO 26
+	IN3 (Right Forward) → GPIO 25
+	IN4 (Right Reverse) → GPIO 33
+	ENB (Right Speed PWM) → GPIO 32
+	LM393 Speed Encoder:
+	VCC → 3V3 Pin (Do NOT use 5V to protect data inputs) 
+	GND → GND Pin (Shares common system ground) 
+	D0 (Digital Pulse Signal) → GPIO 18
+
+## 🚀 How to Run the Code
+### ESP32 Setup
+1. Open the source code in the Arduino IDE or VS Code.
+2. Upload the code to your ESP32 board.
+
+### MATLAB Setup
+1. Open MATLAB.
+2. Run the main script to process the incoming ESP32 data.
+
+## 📊 Dataset Information
+1. Offline Training Dataset (ann_dataset.csv)
+	What it Contains: 2,000 synthetic data samples used to train the 2-10-1 Artificial Neural Network (ANN) model. 
+	How it Was Collected: Synthetically generated in MATLAB by sampling random input variables bounded between -1.0 and 1.0 and computing the target output using a Proportional-Integral (PI) control law (Y=25.0⋅e+15.0⋅Δe). 
+	Variable Meanings:
+	Error (e): Normalized speed error representing the difference between setpoint velocity and measured velocity. 
+	dError (Δe): Normalized change in speed error between consecutive sample steps. 
+	PWM: Target control effort signal calculated from the ideal PI formula. 
+2. Real-Time Telemetry Dataset (telemetry.csv)
+	What it Contains: 200 physical run data points captured during an untethered 10-second test run. 
+	How it Was Collected: Logged automatically at 50 ms intervals (20 Hz) by the ESP32 microcontroller into onboard SPIFFS flash memory while the vehicle autonomously tracked a 0.50 m/s target speed. 
+	Variable Meanings:
+	Error (e): Instantaneous physical speed error (V_"target" -V_"filtered" ) in meters per second (m/s). 
+	dError (Δe): Rate of change of velocity error over the 50 ms discrete loop interval in m/s. 
+	PWM: Dynamic 8-bit Pulse Width Modulation control signal (0–255) generated by the onboard neural network to drive the motors.
