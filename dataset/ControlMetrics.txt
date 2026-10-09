@@ -1,0 +1,12 @@
+>> EvaluateSystem
+
+--- Control System Performance Metrics ---
+Rise Time:      0.750 seconds
+Peak Time:      2.250 seconds
+Overshoot:      34.00 %
+Settling Time:  9.900 seconds
+IAE:            0.8030
+ISE:            0.1451
+ITAE:           2.3078
+------------------------------------------
+>> 
